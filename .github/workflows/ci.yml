@@ -1,0 +1,283 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  release:
+    types: [ published ]
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  lint-and-format:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install rye
+        rye sync
+        
+    - name: Run black formatting check
+      run: |
+        rye run black --check --diff src/ tests/
+        
+    - name: Run isort import sorting check
+      run: |
+        rye run isort --check-only --diff src/ tests/
+        
+    - name: Run flake8 linting
+      run: |
+        rye run flake8 src/ tests/ --max-line-length=120 --extend-ignore=E203,W503
+        
+    - name: Run mypy type checking
+      run: |
+        rye run mypy src/rssbot --ignore-missing-imports --strict-optional
+        
+    - name: Check documentation
+      run: |
+        # Ensure all public functions have docstrings
+        python scripts/check_docstrings.py src/rssbot/
+
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+        
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: rssbot_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install rye
+        rye sync
+        
+    - name: Set up test environment
+      run: |
+        cp .env.example .env
+        echo "DATABASE_URL=postgresql://test_user:test_password@localhost:5432/rssbot_test" >> .env
+        echo "REDIS_URL=redis://localhost:6379/0" >> .env
+        echo "ENVIRONMENT=testing" >> .env
+        
+    - name: Run unit tests
+      run: |
+        rye run pytest tests/unit/ -v --cov=src/rssbot --cov-report=xml
+        
+    - name: Run integration tests
+      run: |
+        rye run pytest tests/integration/ -v
+        
+    - name: Run platform tests
+      run: |
+        rye run pytest tests/test_platform.py -v
+        
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run security scan with bandit
+      run: |
+        pip install bandit[toml]
+        bandit -r src/ -f json -o bandit-report.json
+        
+    - name: Upload security scan results
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-scan
+        path: bandit-report.json
+
+  build-and-test-docker:
+    name: Docker Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build Docker image
+      run: |
+        docker build -t rssbot-platform:test .
+        
+    - name: Test Docker image
+      run: |
+        # Start services with docker-compose
+        docker-compose -f infra/docker-compose.yml up -d
+        
+        # Wait for services to be ready
+        sleep 30
+        
+        # Test health endpoints
+        curl -f http://localhost:8004/health || exit 1
+        
+        # Cleanup
+        docker-compose -f infra/docker-compose.yml down
+
+  end-to-end:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: [test]
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+          
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install rye
+        rye sync
+        
+    - name: Start platform
+      run: |
+        cp .env.example .env
+        echo "REDIS_URL=redis://localhost:6379/0" >> .env
+        # Start platform in background
+        python -m rssbot &
+        PLATFORM_PID=$!
+        echo "PLATFORM_PID=$PLATFORM_PID" >> $GITHUB_ENV
+        
+        # Wait for platform to start
+        sleep 10
+        
+    - name: Run E2E tests
+      run: |
+        # Test platform health
+        curl -f http://localhost:8004/health
+        
+        # Test service configuration
+        curl -f -X POST http://localhost:8004/services/ai_svc/connection-method \
+          -H "Content-Type: application/json" \
+          -H "X-Service-Token: dev_service_token_change_in_production" \
+          -d '{"connection_method": "router"}'
+          
+        # Test cache operations
+        curl -f -H "X-Service-Token: dev_service_token_change_in_production" \
+          http://localhost:8004/admin/cache/stats
+          
+        # Run smoke tests
+        rye run python scripts/smoke_test.py
+        
+    - name: Cleanup
+      run: |
+        kill $PLATFORM_PID || true
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [lint-and-format, test, security, build-and-test-docker, end-to-end]
+    if: github.event_name == 'release'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Build package
+      run: |
+        python -m pip install --upgrade pip build
+        python -m build
+        
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}
+        
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: RssBot Platform ${{ github.ref }}
+        body: |
+          ## Changes
+          See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+          
+          ## Installation
+          ```bash
+          pip install rssbot-platform==${{ github.ref_name }}
+          ```
+          
+          ## Quick Start
+          ```bash
+          python -m rssbot
+          ```
+        draft: false
+        prerelease: false
