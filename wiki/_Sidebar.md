@@ -1,33 +1,56 @@
-# 📚 RssBot Wiki
+# 📚 RssBot Platform Wiki
 
 ## 🏠 Home
-- [**Home**](Home)
-- [**فارسی**](fa/Home)
+- [**🚀 Main Wiki**](Home)
+- [**🇺🇸 English Docs**](en/Home)
+- [**🇮🇷 فارسی**](fa/Home)
 
-## 🚀 Getting Started
-- [Getting Started](en/GETTING_STARTED)
-- [Quick Start](en/QUICK_START)
-- [راهنمای شروع](fa/راهنمای-شروع)
+---
 
-## 🏗️ Architecture
-- [Architecture Overview](en/ARCHITECTURE)
-- [New Architecture Guide](en/NEW_ARCHITECTURE)
-- [Migration Summary](en/ARCHITECTURE_MIGRATION_SUMMARY)
-- [راهنمای مهاجرت معماری](fa/راهنمای-مهاجرت-معماری)
+## 🏁 Getting Started
+- [📦 Installation](en/Installation)
+- [⚡ Quick Start](en/Quick-Start)
+- [⚙️ Configuration](en/Configuration)
+- [🤖 First Bot](en/First-Bot)
+
+## 🏗️ Architecture & Design
+- [🏛️ Architecture Overview](en/Architecture)
+- [🔍 Service Discovery](en/Service-Discovery)
+- [🔀 Connection Methods](en/Connection-Methods)
+- [📊 Performance](en/Performance)
 
 ## 👨‍💻 Development
-- [Development Guide](en/DEVELOPMENT)
-- [Contributing](en/CONTRIBUTING)
-- [API Reference](en/API)
+- [🛠️ Development Setup](en/Development)
+- [📚 API Reference](en/API)
+- [🧪 Testing Guide](en/Testing)
+- [🤝 Contributing](en/Contributing)
 
-## 🚀 Deployment
-- [Production Guide](en/PRODUCTION)
-- [Docker Guide](en/DOCKER)
-- [Deployment Checklist](en/DEPLOYMENT_CHECKLIST)
-
-## 📋 Project Management
-- [Project Status](en/PROJECT_STATUS)
-- [Migration Summary](en/MIGRATION_SUMMARY)
+## 🚀 Deployment & Ops
+- [🏭 Production](en/Production)
+- [🐳 Docker Guide](en/Docker)
+- [☸️ Kubernetes](en/Kubernetes)
+- [📈 Monitoring](en/Monitoring)
 
 ## 🔒 Security
-- [Security Policy](SECURITY)
+- [🛡️ Security Policy](en/Security)
+- [🔐 Authentication](en/Authentication)
+- [🔒 Environment Security](en/Environment-Security)
+
+## 🛠️ Advanced
+- [🔧 Custom Services](en/Custom-Services)
+- [📋 Migration Guide](en/Migration)
+- [🚨 Troubleshooting](en/Troubleshooting)
+- [⚡ Performance Tuning](en/Performance-Tuning)
+
+---
+
+## 🇮🇷 مستندات فارسی
+
+### شروع کار
+- [راهنمای شروع](fa/راهنمای-شروع)
+- [شروع سریع](fa/شروع-سریع)
+- [پیکربندی](fa/پیکربندی)
+
+### معماری
+- [معماری سیستم](fa/معماری-سیستم)
+- [راهنمای مهاجرت](fa/راهنمای-مهاجرت-معماری)

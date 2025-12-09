@@ -1,783 +1,594 @@
-# 📡 API Reference
+# 📚 API Reference
 
-Complete API documentation for the **RssBot Hybrid Microservices Platform**. This document covers all available endpoints, request/response formats, and usage examples.
+Complete API documentation for RssBot Platform's REST endpoints, service management, and integration capabilities.
 
 ## 🎯 API Overview
 
-The RssBot Platform provides multiple API interfaces:
+RssBot Platform provides a comprehensive REST API for:
 
-- **🎛️ Core Platform API**: Main orchestration and admin endpoints
-- **🔧 Service Management API**: Per-service configuration and monitoring
-- **🤖 Service-Specific APIs**: Individual service endpoints (AI, formatting, etc.)
-- **📊 Monitoring API**: Health checks, metrics, and performance data
+- **🎛️ Service Management**: Configure connection methods, health monitoring
+- **🗄️ Database Operations**: Feed management, user data, analytics
+- **🤖 Bot Operations**: Message handling, subscription management
+- **🧠 AI Processing**: Content enhancement, summarization
+- **💳 Payment Processing**: Subscription management, billing
+- **⚙️ Admin Operations**: Platform configuration, monitoring
 
-### 🔗 Base URLs
+## 🔗 Base URLs
 
-```bash
-# Core Platform (all deployments)
-https://your-platform.com       # Production
-http://localhost:8004          # Development
+| Environment     | Base URL                             | Description         |
+|-----------------|--------------------------------------|---------------------|
+| **Development** | `http://localhost:8004`              | Local development   |
+| **Staging**     | `https://staging-api.yourdomain.com` | Staging environment |
+| **Production**  | `https://api.yourdomain.com`         | Production API      |
 
-# Service-Specific (REST mode only)  
-http://localhost:8001          # Database Service
-http://localhost:8002          # Bot Service
-http://localhost:8005          # AI Service
-http://localhost:8006          # Formatting Service
-```
+## 🔐 Authentication
 
-### 🔒 Authentication
+### Service Token Authentication
 
-All API endpoints require service token authentication:
+All API requests require a service token in the header:
 
 ```bash
-# Required header for all requests
-X-Service-Token: your_service_token_here
-
-# Example request
-curl -H "X-Service-Token: dev_service_token_change_in_production" \
-     http://localhost:8004/health
+curl -H "Authorization: Bearer your_service_token_here" \
+     -H "Content-Type: application/json" \
+     http://localhost:8004/api/endpoint
 ```
 
-## 🎛️ Core Platform API
+### Admin API Key
 
-### Platform Health & Status
+Admin endpoints require an additional API key:
+
+```bash
+curl -H "X-API-Key: your_admin_api_key" \
+     -H "Authorization: Bearer your_service_token" \
+     http://localhost:8004/admin/endpoint
+```
+
+## 🎛️ Core Platform APIs
+
+### Health & Status
 
 #### GET /health
+Get overall platform health status.
 
-Get platform health and architecture information.
+```bash
+curl http://localhost:8004/health
+```
 
 **Response:**
 ```json
 {
   "status": "healthy",
-  "platform": "rssbot_hybrid_microservices", 
   "architecture": "per_service_core_controller",
-  "version": "2.0.0",
-  "cache_stats": {
-    "cache_available": true,
-    "redis_info": {
-      "keyspace_hits": 1000,
-      "keyspace_misses": 10
-    }
-  },
-  "mounted_services": 4,
-  "core_location": "src/rssbot/core/controller.py"
+  "services_count": 6,
+  "database_status": "connected",
+  "cache_status": "connected",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "version": "1.0.0"
 }
 ```
-
-**Example:**
-```bash
-curl http://localhost:8004/health
-```
-
----
-
-### Service Discovery & Management
 
 #### GET /services
+List all registered services and their status.
 
-List all registered services with their connection methods and status.
-
-**Headers:** `X-Service-Token: required`
+```bash
+curl http://localhost:8004/services
+```
 
 **Response:**
 ```json
-{
-  "services": [
-    {
-      "name": "ai_svc",
-      "display_name": "AI Service",
-      "connection_method": "router",
-      "health_status": "healthy",
-      "is_mounted": true,
-      "has_router": true,
-      "last_health_check": "2024-01-15T10:30:00Z"
-    },
-    {
-      "name": "formatting_svc", 
-      "display_name": "Formatting Service",
-      "connection_method": "rest",
-      "health_status": "healthy",
-      "is_mounted": false,
-      "has_router": true,
-      "last_health_check": "2024-01-15T10:29:45Z"
-    }
-  ],
-  "total_services": 8,
-  "mounted_count": 4
-}
+[
+  {
+    "name": "db_svc",
+    "status": "running",
+    "connection_method": "router",
+    "health_score": 0.95,
+    "last_seen": "2024-01-15T10:29:45Z",
+    "port": 8001,
+    "url": "http://localhost:8001"
+  },
+  {
+    "name": "ai_svc",
+    "status": "running", 
+    "connection_method": "hybrid",
+    "health_score": 0.88,
+    "last_seen": "2024-01-15T10:29:50Z",
+    "port": 8003
+  }
+]
 ```
 
-**Example:**
-```bash
-curl -H "X-Service-Token: your_token" \
-     http://localhost:8004/services
-```
-
----
-
-#### GET /services/{service_name}/connection-method
-
-Get connection method configuration for a specific service.
-
-**Parameters:**
-- `service_name` (path): Name of the service (e.g., "ai_svc")
-
-**Headers:** `X-Service-Token: required`
-
-**Response:**
-```json
-{
-  "service": "ai_svc",
-  "configured_method": "router",
-  "effective_method": "router", 
-  "should_use_router": true,
-  "health_status": "healthy",
-  "has_router": true,
-  "is_router_mounted": true
-}
-```
-
-**Example:**
-```bash
-curl -H "X-Service-Token: your_token" \
-     http://localhost:8004/services/ai_svc/connection-method
-```
-
----
+### Service Management
 
 #### POST /services/{service_name}/connection-method
+Change a service's connection method.
 
-Update connection method for a specific service.
-
-**Parameters:**
-- `service_name` (path): Name of the service
-
-**Headers:** 
-- `X-Service-Token: required`
-- `Content-Type: application/json`
-
-**Request Body:**
-```json
-{
-  "connection_method": "router"
-}
-```
-
-**Valid connection methods:**
-- `"router"` - In-process FastAPI router (fastest)
-- `"rest"` - HTTP calls with JSON (scalable)
-- `"hybrid"` - Router preferred, auto-fallback to REST
-- `"disabled"` - Service completely disabled
-
-**Response:**
-```json
-{
-  "success": true,
-  "service": "ai_svc",
-  "new_connection_method": "router",
-  "message": "Connection method updated. Restart controller to apply router mounting changes."
-}
-```
-
-**Example:**
+**Request:**
 ```bash
 curl -X POST http://localhost:8004/services/ai_svc/connection-method \
-     -H "Content-Type: application/json" \
-     -H "X-Service-Token: your_token" \
-     -d '{"connection_method": "router"}'
+  -H "Content-Type: application/json" \
+  -d '{"connection_method": "router"}'
 ```
-
----
-
-## 🔧 Admin API
-
-### Bulk Service Management
-
-#### POST /admin/bulk-connection-methods
-
-Update connection methods for multiple services simultaneously.
-
-**Headers:**
-- `X-Service-Token: required`  
-- `Content-Type: application/json`
-
-**Request Body:**
-```json
-{
-  "ai_svc": "router",
-  "formatting_svc": "router",
-  "bot_svc": "rest", 
-  "payment_svc": "rest",
-  "user_svc": "hybrid"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "updates": {
-    "ai_svc": true,
-    "formatting_svc": true,
-    "bot_svc": true,
-    "payment_svc": true,
-    "user_svc": true
-  },
-  "message": "Bulk update completed. Restart controller to apply router mounting changes."
-}
-```
-
-**Example:**
-```bash
-curl -X POST http://localhost:8004/admin/bulk-connection-methods \
-     -H "Content-Type: application/json" \
-     -H "X-Service-Token: your_token" \
-     -d '{
-       "ai_svc": "router",
-       "formatting_svc": "router",
-       "bot_svc": "rest",
-       "payment_svc": "rest"
-     }'
-```
-
----
-
-#### POST /admin/migrate-from-global-mode
-
-Migrate from legacy global `LOCAL_ROUTER_MODE` to per-service decisions.
-
-**Headers:** `X-Service-Token: required`
-
-**Response:**
-```json
-{
-  "success": true,
-  "migration_plan": {
-    "ai_svc": "ROUTER (global=true, has_router=true)",
-    "formatting_svc": "ROUTER (global=true, has_router=true)", 
-    "bot_svc": "REST (global=true, has_router=false)",
-    "payment_svc": "REST (global=false, has_router=true)"
-  },
-  "message": "Migration completed. Each service now has individual connection method."
-}
-```
-
-**Example:**
-```bash
-curl -X POST http://localhost:8004/admin/migrate-from-global-mode \
-     -H "X-Service-Token: your_token"
-```
-
----
-
-#### POST /admin/remount-services
-
-Re-discover and remount services based on current configuration.
-
-**Headers:** `X-Service-Token: required`
-
-**Response:**
-```json
-{
-  "success": true,
-  "mounted_services": ["ai_svc", "formatting_svc", "user_svc"],
-  "message": "Services remounted successfully"
-}
-```
-
-**Example:**
-```bash
-curl -X POST http://localhost:8004/admin/remount-services \
-     -H "X-Service-Token: your_token"
-```
-
----
-
-### Cache Management
-
-#### GET /admin/cache/stats
-
-Get detailed cache performance statistics.
-
-**Headers:** `X-Service-Token: required`
-
-**Response:**
-```json
-{
-  "cache_stats": {
-    "cache_available": true,
-    "redis_info": {
-      "keyspace_hits": 1000,
-      "keyspace_misses": 10,
-      "used_memory_human": "2.5M"
-    },
-    "service_cache_keys": 12,
-    "sample_keys": [
-      "rssbot:service:ai_svc:method",
-      "rssbot:service:ai_svc:health"
-    ]
-  },
-  "registry_available": true
-}
-```
-
-**Example:**
-```bash
-curl -H "X-Service-Token: your_token" \
-     http://localhost:8004/admin/cache/stats
-```
-
----
-
-#### DELETE /admin/cache
-
-Invalidate all service caches to force fresh lookups.
-
-**Headers:** `X-Service-Token: required`
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "All service caches invalidated"
-}
-```
-
-**Example:**
-```bash
-curl -X DELETE -H "X-Service-Token: your_token" \
-     http://localhost:8004/admin/cache
-```
-
----
-
-## 🤖 Service-Specific APIs
-
-### AI Service API
-
-When AI service is mounted as router (`connection_method: "router"`), endpoints are available at `/ai/*`:
-
-#### POST /ai/summarize
-
-Generate AI-powered content summaries.
-
-**Headers:**
-- `X-Service-Token: required`
-- `Content-Type: application/json`
-
-**Request Body:**
-```json
-{
-  "text": "Long article content to summarize...",
-  "max_length": 100,
-  "style": "technical",
-  "language": "en"
-}
-```
-
-**Response:**
-```json
-{
-  "summary": "Intelligent summary of the content...",
-  "confidence": 0.95,
-  "original_length": 1500,
-  "summary_length": 98,
-  "processing_time_ms": 245
-}
-```
-
-**Example:**
-```bash
-curl -X POST http://localhost:8004/ai/summarize \
-     -H "Content-Type: application/json" \
-     -H "X-Service-Token: your_token" \
-     -d '{
-       "text": "Long article content here...",
-       "max_length": 100,
-       "style": "technical"
-     }'
-```
-
----
-
-#### POST /ai/analyze-sentiment
-
-Analyze content sentiment and emotions.
-
-**Request Body:**
-```json
-{
-  "text": "Content to analyze for sentiment",
-  "include_emotions": true
-}
-```
-
-**Response:**
-```json
-{
-  "sentiment": "positive",
-  "confidence": 0.87,
-  "emotions": {
-    "joy": 0.6,
-    "trust": 0.4,
-    "anticipation": 0.2
-  },
-  "analysis_time_ms": 123
-}
-```
-
----
-
-### Formatting Service API
-
-#### POST /formatting/format
-
-Format content for different platforms and templates.
-
-**Request Body:**
-```json
-{
-  "content": "Raw RSS content to format",
-  "format": "telegram_html",
-  "template": "news_article", 
-  "channel_profile": {
-    "style": "professional",
-    "language": "en",
-    "include_links": true
-  }
-}
-```
-
-**Response:**
-```json
-{
-  "formatted_content": "<b>Formatted HTML content</b>...",
-  "metadata": {
-    "original_length": 500,
-    "formatted_length": 450,
-    "template_used": "news_article",
-    "format_type": "telegram_html"
-  },
-  "processing_time_ms": 45
-}
-```
-
-**Example:**
-```bash
-curl -X POST http://localhost:8004/formatting/format \
-     -H "Content-Type: application/json" \
-     -H "X-Service-Token: your_token" \
-     -d '{
-       "content": "Raw RSS content",
-       "format": "telegram_html", 
-       "template": "news_article"
-     }'
-```
-
----
-
-### User Service API
-
-#### GET /user/profile/{user_id}
-
-Get user profile and preferences.
 
 **Parameters:**
-- `user_id` (path): Telegram user ID
+- `connection_method`: `"router"`, `"rest"`, `"hybrid"`, or `"disabled"`
 
 **Response:**
 ```json
 {
-  "user_id": 12345678,
-  "username": "johndoe",
-  "preferences": {
-    "language": "en",
-    "timezone": "UTC",
-    "notification_settings": {
-      "email": true,
-      "telegram": true
-    }
+  "service_name": "ai_svc",
+  "old_method": "rest",
+  "new_method": "router",
+  "changed_at": "2024-01-15T10:30:00Z",
+  "status": "updated"
+}
+```
+
+#### GET /services/{service_name}/status
+Get detailed status for a specific service.
+
+```bash
+curl http://localhost:8004/services/ai_svc/status
+```
+
+**Response:**
+```json
+{
+  "name": "ai_svc",
+  "status": "running",
+  "connection_method": "hybrid",
+  "health": {
+    "score": 0.88,
+    "latency_ms": 45,
+    "success_rate": 0.97,
+    "last_check": "2024-01-15T10:29:50Z"
   },
-  "subscription": {
-    "plan": "premium",
-    "expires_at": "2024-12-31T23:59:59Z"
+  "metrics": {
+    "requests_total": 1547,
+    "errors_total": 23,
+    "avg_response_time_ms": 234
+  },
+  "configuration": {
+    "max_tokens": 1000,
+    "model": "gpt-3.5-turbo",
+    "temperature": 0.7
   }
 }
 ```
 
----
+## 🗄️ Database Service APIs
 
-#### PUT /user/profile/{user_id}
+### Feed Management
 
-Update user profile and preferences.
+#### GET /services/db_svc/feeds
+List all RSS feeds.
 
-**Request Body:**
+```bash
+curl http://localhost:8004/services/db_svc/feeds
+```
+
+**Query Parameters:**
+- `limit` (optional): Maximum number of feeds to return (default: 50)
+- `offset` (optional): Number of feeds to skip (default: 0)
+- `active_only` (optional): Only return active feeds (default: false)
+
+**Response:**
 ```json
 {
-  "preferences": {
-    "language": "en",
-    "timezone": "America/New_York",
-    "notification_settings": {
-      "email": false,
-      "telegram": true
+  "feeds": [
+    {
+      "id": 1,
+      "url": "https://feeds.feedburner.com/oreilly",
+      "title": "O'Reilly Media",
+      "description": "Technology and business insights",
+      "last_updated": "2024-01-15T10:25:00Z",
+      "active": true,
+      "chat_id": -1001234567890,
+      "subscribers_count": 156
     }
-  }
+  ],
+  "total": 1,
+  "limit": 50,
+  "offset": 0
 }
 ```
 
----
+#### POST /services/db_svc/feeds
+Create a new RSS feed.
 
-### Bot Service API
-
-#### POST /bot/send-message
-
-Send message through Telegram bot.
-
-**Request Body:**
-```json
-{
-  "chat_id": "@channel_name",
-  "text": "Message to send",
-  "parse_mode": "HTML",
-  "reply_markup": {
-    "inline_keyboard": [
-      [{"text": "Read More", "url": "https://example.com"}]
-    ]
-  }
-}
+**Request:**
+```bash
+curl -X POST http://localhost:8004/services/db_svc/feeds \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/rss.xml",
+    "title": "Example Feed",
+    "chat_id": -1001234567890,
+    "update_interval": 3600
+  }'
 ```
 
 **Response:**
 ```json
 {
-  "success": true,
-  "message_id": 12345,
-  "chat_id": "@channel_name",
-  "sent_at": "2024-01-15T10:30:00Z"
+  "id": 2,
+  "url": "https://example.com/rss.xml",
+  "title": "Example Feed", 
+  "chat_id": -1001234567890,
+  "update_interval": 3600,
+  "active": true,
+  "created_at": "2024-01-15T10:35:00Z"
 }
 ```
 
----
+#### PUT /services/db_svc/feeds/{feed_id}
+Update an existing RSS feed.
 
-## 📊 Monitoring & Metrics API
-
-### Platform Metrics
-
-#### GET /metrics
-
-Prometheus-compatible metrics endpoint.
-
-**Response:** (Prometheus format)
-```
-# HELP rssbot_requests_total Total number of requests
-# TYPE rssbot_requests_total counter
-rssbot_requests_total{method="GET",endpoint="/health"} 1000
-
-# HELP rssbot_response_time_seconds Response time in seconds
-# TYPE rssbot_response_time_seconds histogram
-rssbot_response_time_seconds_bucket{le="0.1"} 950
-rssbot_response_time_seconds_bucket{le="0.5"} 990
-rssbot_response_time_seconds_bucket{le="1.0"} 1000
-
-# HELP rssbot_cache_hits_total Total cache hits
-# TYPE rssbot_cache_hits_total counter
-rssbot_cache_hits_total 10000
-
-# HELP rssbot_services_healthy Number of healthy services
-# TYPE rssbot_services_healthy gauge
-rssbot_services_healthy 8
+**Request:**
+```bash
+curl -X PUT http://localhost:8004/services/db_svc/feeds/2 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Updated Feed Title",
+    "active": false
+  }'
 ```
 
----
+#### DELETE /services/db_svc/feeds/{feed_id}
+Delete an RSS feed.
 
-### Service Health Monitoring
+```bash
+curl -X DELETE http://localhost:8004/services/db_svc/feeds/2
+```
 
-#### GET /health/detailed
+### User Management
 
-Detailed health information for all components.
+#### GET /services/db_svc/users
+List all users.
 
-**Headers:** `X-Service-Token: required`
+```bash
+curl http://localhost:8004/services/db_svc/users?limit=20&offset=0
+```
+
+#### POST /services/db_svc/users
+Create or update a user.
+
+**Request:**
+```bash
+curl -X POST http://localhost:8004/services/db_svc/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "telegram_id": 123456789,
+    "username": "johndoe",
+    "first_name": "John",
+    "subscription_type": "free"
+  }'
+```
+
+## 🤖 Bot Service APIs
+
+### Message Operations
+
+#### POST /services/bot_svc/send-message
+Send a message to a Telegram chat.
+
+**Request:**
+```bash
+curl -X POST http://localhost:8004/services/bot_svc/send-message \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chat_id": -1001234567890,
+    "text": "Hello from RssBot!",
+    "parse_mode": "HTML"
+  }'
+```
+
+**Response:**
+```json
+{
+  "message_id": 12345,
+  "chat_id": -1001234567890,
+  "sent_at": "2024-01-15T10:40:00Z",
+  "status": "sent"
+}
+```
+
+#### POST /services/bot_svc/broadcast
+Broadcast a message to multiple chats.
+
+**Request:**
+```bash
+curl -X POST http://localhost:8004/services/bot_svc/broadcast \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chat_ids": [-1001234567890, -1001234567891],
+    "text": "RSS Feed Update!",
+    "parse_mode": "HTML"
+  }'
+```
+
+### Webhook Management
+
+#### POST /services/bot_svc/set-webhook
+Configure Telegram webhook.
+
+**Request:**
+```bash
+curl -X POST http://localhost:8004/services/bot_svc/set-webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://yourdomain.com/webhook",
+    "secret_token": "your_webhook_secret"
+  }'
+```
+
+#### DELETE /services/bot_svc/webhook
+Remove Telegram webhook (switch to polling).
+
+```bash
+curl -X DELETE http://localhost:8004/services/bot_svc/webhook
+```
+
+## 🧠 AI Service APIs
+
+### Content Processing
+
+#### POST /services/ai_svc/summarize
+Summarize content using AI.
+
+**Request:**
+```bash
+curl -X POST http://localhost:8004/services/ai_svc/summarize \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Long article content here...",
+    "max_length": 200,
+    "language": "en"
+  }'
+```
+
+**Response:**
+```json
+{
+  "original_text": "Long article content here...",
+  "summary": "Brief summary of the article...",
+  "summary_length": 45,
+  "processing_time_ms": 1250,
+  "model_used": "gpt-3.5-turbo"
+}
+```
+
+#### POST /services/ai_svc/enhance
+Enhance content with AI.
+
+**Request:**
+```bash
+curl -X POST http://localhost:8004/services/ai_svc/enhance \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Original content",
+    "enhancement_type": "readability",
+    "target_audience": "general"
+  }'
+```
+
+#### POST /services/ai_svc/translate
+Translate content to another language.
+
+**Request:**
+```bash
+curl -X POST http://localhost:8004/services/ai_svc/translate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Hello world",
+    "target_language": "es",
+    "source_language": "en"
+  }'
+```
+
+## 💳 Payment Service APIs
+
+### Subscription Management
+
+#### GET /services/payment_svc/subscriptions
+List user subscriptions.
+
+```bash
+curl http://localhost:8004/services/payment_svc/subscriptions?user_id=123456789
+```
+
+#### POST /services/payment_svc/create-checkout
+Create a Stripe checkout session.
+
+**Request:**
+```bash
+curl -X POST http://localhost:8004/services/payment_svc/create-checkout \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": 123456789,
+    "price_id": "price_premium_plan",
+    "success_url": "https://yourdomain.com/success",
+    "cancel_url": "https://yourdomain.com/cancel"
+  }'
+```
+
+**Response:**
+```json
+{
+  "checkout_url": "https://checkout.stripe.com/pay/cs_test_...",
+  "session_id": "cs_test_1234567890",
+  "expires_at": "2024-01-15T11:40:00Z"
+}
+```
+
+## ⚙️ Admin APIs
+
+### Platform Configuration
+
+#### GET /admin/config
+Get current platform configuration.
+
+```bash
+curl -H "X-API-Key: your_admin_key" \
+     http://localhost:8004/admin/config
+```
+
+#### POST /admin/config/reload
+Reload platform configuration without restart.
+
+```bash
+curl -X POST -H "X-API-Key: your_admin_key" \
+     http://localhost:8004/admin/config/reload
+```
+
+### Monitoring & Metrics
+
+#### GET /admin/metrics
+Get platform performance metrics.
+
+```bash
+curl -H "X-API-Key: your_admin_key" \
+     http://localhost:8004/admin/metrics
+```
 
 **Response:**
 ```json
 {
   "platform": {
-    "status": "healthy",
     "uptime_seconds": 86400,
-    "version": "2.0.0"
+    "requests_total": 15476,
+    "errors_total": 23,
+    "avg_response_time_ms": 45
   },
-  "services": [
-    {
-      "name": "ai_svc",
-      "status": "healthy",
-      "connection_method": "router",
-      "response_time_ms": 2.5,
-      "last_check": "2024-01-15T10:30:00Z"
+  "services": {
+    "db_svc": {
+      "requests": 8234,
+      "errors": 5,
+      "avg_response_time_ms": 12
+    },
+    "ai_svc": {
+      "requests": 1245,
+      "errors": 8,
+      "avg_response_time_ms": 234
     }
-  ],
+  },
   "cache": {
-    "status": "healthy", 
-    "hit_ratio": 0.95,
-    "memory_usage_mb": 256
-  },
-  "database": {
-    "status": "healthy",
-    "connection_pool": {
-      "active": 5,
-      "idle": 15
-    }
+    "hit_rate": 0.87,
+    "total_hits": 13463,
+    "total_misses": 2013
   }
 }
 ```
 
----
+#### GET /admin/logs/{service_name}
+Get logs for a specific service.
 
-## 🔧 Error Handling
+```bash
+curl -H "X-API-Key: your_admin_key" \
+     "http://localhost:8004/admin/logs/ai_svc?limit=100&level=ERROR"
+```
 
-### Standard Error Responses
+## 🚨 Error Handling
 
-All API endpoints return standardized error responses:
+### Standard Error Response
+
+All APIs return consistent error responses:
 
 ```json
 {
   "error": {
-    "code": "SERVICE_NOT_FOUND", 
-    "message": "Service 'invalid_svc' not found in registry",
+    "code": "SERVICE_NOT_FOUND",
+    "message": "Service 'unknown_svc' not found",
     "details": {
-      "service_name": "invalid_svc",
-      "available_services": ["ai_svc", "formatting_svc"]
+      "service_name": "unknown_svc",
+      "available_services": ["db_svc", "ai_svc", "bot_svc"]
     },
-    "timestamp": "2024-01-15T10:30:00Z",
-    "request_id": "req_12345"
+    "timestamp": "2024-01-15T10:45:00Z",
+    "request_id": "req_1234567890"
   }
 }
 ```
 
-### HTTP Status Codes
-
-| Status Code | Description | Usage |
-|-------------|-------------|-------|
-| 200 | OK | Successful requests |
-| 201 | Created | Resource created successfully |
-| 400 | Bad Request | Invalid request data |
-| 401 | Unauthorized | Invalid or missing service token |
-| 404 | Not Found | Resource not found |
-| 422 | Unprocessable Entity | Validation errors |
-| 500 | Internal Server Error | Server-side errors |
-| 503 | Service Unavailable | Service temporarily unavailable |
-
 ### Common Error Codes
 
-| Error Code | Description | Solution |
-|------------|-------------|----------|
-| `INVALID_SERVICE_TOKEN` | Service token is invalid | Check X-Service-Token header |
-| `SERVICE_NOT_FOUND` | Service not registered | Check service name spelling |
-| `INVALID_CONNECTION_METHOD` | Invalid connection method | Use: router, rest, hybrid, disabled |
-| `CACHE_CONNECTION_ERROR` | Redis cache unavailable | Check Redis connectivity |
-| `SERVICE_UNAVAILABLE` | Service temporarily down | Retry request or check service health |
+| Code                  | HTTP Status | Description                          |
+|-----------------------|-------------|--------------------------------------|
+| `INVALID_REQUEST`     | 400         | Malformed request body or parameters |
+| `UNAUTHORIZED`        | 401         | Missing or invalid authentication    |
+| `FORBIDDEN`           | 403         | Insufficient permissions             |
+| `SERVICE_NOT_FOUND`   | 404         | Requested service doesn't exist      |
+| `METHOD_NOT_ALLOWED`  | 405         | HTTP method not supported            |
+| `RATE_LIMIT_EXCEEDED` | 429         | Too many requests                    |
+| `SERVICE_UNAVAILABLE` | 503         | Service temporarily unavailable      |
+| `INTERNAL_ERROR`      | 500         | Unexpected server error              |
 
----
+## 📊 Rate Limiting
 
-## 🚀 Usage Examples
+### Rate Limit Headers
 
-### Complete Service Configuration Workflow
+All API responses include rate limiting information:
 
-```bash
-# 1. Check platform health
-curl http://localhost:8004/health
-
-# 2. List all services  
-curl -H "X-Service-Token: $TOKEN" \
-     http://localhost:8004/services
-
-# 3. Configure high-performance services for router mode
-curl -X POST http://localhost:8004/admin/bulk-connection-methods \
-     -H "Content-Type: application/json" \
-     -H "X-Service-Token: $TOKEN" \
-     -d '{
-       "ai_svc": "router",
-       "formatting_svc": "router",
-       "user_svc": "router"  
-     }'
-
-# 4. Configure scalable services for REST mode
-curl -X POST http://localhost:8004/admin/bulk-connection-methods \
-     -H "Content-Type: application/json" \
-     -H "X-Service-Token: $TOKEN" \
-     -d '{
-       "bot_svc": "rest",
-       "payment_svc": "rest",
-       "channel_mgr_svc": "rest"
-     }'
-
-# 5. Verify configuration
-curl -H "X-Service-Token: $TOKEN" \
-     http://localhost:8004/services
-
-# 6. Monitor cache performance
-curl -H "X-Service-Token: $TOKEN" \
-     http://localhost:8004/admin/cache/stats
+```http
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 999
+X-RateLimit-Reset: 1642234800
+X-RateLimit-Window: 3600
 ```
 
-### AI-Powered Content Processing Pipeline
+### Rate Limits by Endpoint Type
 
-```bash
-# 1. Summarize content with AI
-SUMMARY=$(curl -X POST http://localhost:8004/ai/summarize \
-     -H "Content-Type: application/json" \
-     -H "X-Service-Token: $TOKEN" \
-     -d '{
-       "text": "Very long article content...",
-       "max_length": 150,
-       "style": "professional"
-     }' | jq -r '.summary')
+| Endpoint Type           | Rate Limit  | Window      |
+|-------------------------|-------------|-------------|
+| **Health/Status**       | 100 req/min | Per IP      |
+| **Service Management**  | 50 req/min  | Per API key |
+| **Database Operations** | 200 req/min | Per API key |
+| **AI Processing**       | 60 req/min  | Per API key |
+| **Admin Operations**    | 30 req/min  | Per API key |
 
-# 2. Format for Telegram
-FORMATTED=$(curl -X POST http://localhost:8004/formatting/format \
-     -H "Content-Type: application/json" \
-     -H "X-Service-Token: $TOKEN" \
-     -d "{
-       \"content\": \"$SUMMARY\",
-       \"format\": \"telegram_html\",
-       \"template\": \"news_article\"
-     }" | jq -r '.formatted_content')
+## 🔧 SDK and Libraries
 
-# 3. Send via bot  
-curl -X POST http://localhost:8004/bot/send-message \
-     -H "Content-Type: application/json" \
-     -H "X-Service-Token: $TOKEN" \
-     -d "{
-       \"chat_id\": \"@your_channel\",
-       \"text\": \"$FORMATTED\",
-       \"parse_mode\": \"HTML\"
-     }"
+### Python SDK
+
+```python
+from rssbot_client import RssBotClient
+
+client = RssBotClient(
+    base_url="http://localhost:8004",
+    service_token="your_service_token"
+)
+
+# Get platform health
+health = await client.get_health()
+
+# Manage services
+await client.set_connection_method("ai_svc", "hybrid")
+
+# Send messages
+await client.send_message(
+    chat_id=-1001234567890,
+    text="Hello from Python!"
+)
+```
+
+### JavaScript SDK
+
+```javascript
+import { RssBotClient } from '@rssbot/client';
+
+const client = new RssBotClient({
+  baseUrl: 'http://localhost:8004',
+  serviceToken: 'your_service_token'
+});
+
+// Get services
+const services = await client.getServices();
+
+// Process with AI
+const summary = await client.ai.summarize({
+  text: 'Long content...',
+  maxLength: 200
+});
 ```
 
 ---
 
-## 📚 Interactive API Documentation
-
-### OpenAPI/Swagger UI
-
-The platform provides interactive API documentation:
-
-- **Development**: http://localhost:8004/docs
-- **Alternative UI**: http://localhost:8004/redoc
-
-### API Schema
-
-Download the complete OpenAPI schema:
-
-```bash
-# Get OpenAPI JSON schema
-curl http://localhost:8004/openapi.json > rssbot-api-schema.json
-
-# Get OpenAPI YAML schema  
-curl -H "Accept: application/yaml" \
-     http://localhost:8004/openapi.json > rssbot-api-schema.yaml
-```
-
----
-
-**The RssBot Platform API provides enterprise-grade functionality with comprehensive type safety, performance optimization, and monitoring capabilities! 🚀📡**
+**📚 This API reference covers all major endpoints. For interactive API exploration, visit `/docs` on your running platform instance.**

@@ -242,16 +242,16 @@ curl -H "X-Service-Token: dev_service_token_change_in_production" \
 
 ## 🔄 Router Mode vs REST Mode Comparison
 
-| Feature | Router Mode (LOCAL_ROUTER_MODE=true) | REST Mode (LOCAL_ROUTER_MODE=false) |
-|---------|--------------------------------------|-------------------------------------|
-| **Latency** | Ultra-low (function calls) | Higher (HTTP overhead) |
-| **Deployment** | Single process | Multiple processes |
-| **Scaling** | Vertical only | Horizontal per service |
-| **Debugging** | Shared process/logs | Isolated service logs |
-| **Resource Usage** | Shared memory/CPU | Independent resources |
-| **Development** | Faster iteration | Traditional microservices |
-| **Production** | Single server only | Distributed deployment |
-| **Fault Isolation** | Lower (shared process) | Higher (process boundaries) |
+| Feature             | Router Mode (LOCAL_ROUTER_MODE=true) | REST Mode (LOCAL_ROUTER_MODE=false) |
+|---------------------|--------------------------------------|-------------------------------------|
+| **Latency**         | Ultra-low (function calls)           | Higher (HTTP overhead)              |
+| **Deployment**      | Single process                       | Multiple processes                  |
+| **Scaling**         | Vertical only                        | Horizontal per service              |
+| **Debugging**       | Shared process/logs                  | Isolated service logs               |
+| **Resource Usage**  | Shared memory/CPU                    | Independent resources               |
+| **Development**     | Faster iteration                     | Traditional microservices           |
+| **Production**      | Single server only                   | Distributed deployment              |
+| **Fault Isolation** | Lower (shared process)               | Higher (process boundaries)         |
 
 ### When to Use Router Mode
 ✅ **Single server deployments**  

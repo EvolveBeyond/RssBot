@@ -5,7 +5,7 @@
 We actively support security updates for the following versions:
 
 | Version | Supported          |
-| ------- | ------------------ |
+| ------- | -------------------|
 | 2.x     | ✅ Yes             |
 | 1.x     | ❌ No (Legacy)     |
 
