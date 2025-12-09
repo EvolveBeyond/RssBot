@@ -64,18 +64,18 @@ curl -X POST http://localhost:8004/services/ai_svc/connection-method \
 
 ## 📚 Documentation
 
-Complete documentation is available in our [Wiki](../../wiki):
+Complete documentation is available in our [Wiki](wiki/):
 
 ### English Documentation
-- [Getting Started](../../wiki/GETTING_STARTED)
-- [Architecture Guide](../../wiki/ARCHITECTURE)
-- [API Reference](../../wiki/API)
-- [Development Guide](../../wiki/DEVELOPMENT)
-- [Production Deployment](../../wiki/PRODUCTION)
+- [Getting Started](wiki/en/Quick-Start.md)
+- [Architecture Guide](wiki/en/Architecture.md)
+- [API Reference](wiki/en/API.md)
+- [Development Guide](wiki/en/Development.md)
+- [Production Deployment](wiki/en/Production.md)
 
 ### Persian Documentation
-- [راهنمای شروع](../../wiki/راهنمای-شروع)
-- [معماری سیستم](../../wiki/معماری-سیستم)
+- [راهنمای شروع](wiki/fa/راهنمای-شروع.md)
+- [معماری سیستم](wiki/fa/معماری-سیستم.md)
 
 ## 🚀 Deployment
 

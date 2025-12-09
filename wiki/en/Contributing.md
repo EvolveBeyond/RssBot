@@ -200,19 +200,19 @@ async def process_services(
 ) -> Dict[str, Union[str, bool]]:
     """
     Process multiple services with specified connection method.
-    
+
     Args:
         service_names: List of service names to process
         connection_method: Connection method ("router", "rest", "hybrid")
-        
+
     Returns:
         Dictionary with processing results for each service
-        
+
     Raises:
         HTTPException: If service configuration fails
     """
     results = {}
-    
+
     for service_name in service_names:
         try:
             result = await configure_service(service_name, connection_method)
@@ -222,7 +222,6 @@ async def process_services(
                 status_code=500,
                 detail=f"Failed to configure {service_name}: {str(e)}"
             )
-    
     return results
 ```
 
@@ -254,34 +253,34 @@ Use **Google-style** docstrings:
 class ServiceRegistry:
     """
     Redis-backed service registry with database persistence.
-    
-    This class manages service discovery, health monitoring, and 
+
+    This class manages service discovery, health monitoring, and
     connection method configuration for the hybrid microservices platform.
-    
+
     Attributes:
         redis_client: Redis client for caching
         db_session: Database session factory
-        
+
     Example:
         ```python
         registry = ServiceRegistry()
         await registry.initialize()
-        
+
         # Check if service should use router
         use_router = await registry.should_use_router("ai_svc")
         ```
     """
-    
+
     async def should_use_router(self, service_name: str) -> bool:
         """
         Determine if service should use router connection method.
-        
+
         Args:
             service_name: Name of the service (e.g., 'ai_svc')
-            
+
         Returns:
             True if service should use router mode, False for REST
-            
+
         Raises:
             ServiceNotFoundError: If service is not registered
             CacheConnectionError: If Redis is unavailable and DB fails
@@ -305,10 +304,9 @@ async def configure_service(service_name: str, method: str) -> bool:
         service = await self.get_service(service_name)
         if not service:
             raise ServiceNotFoundError(f"Service {service_name} not found")
-            
+
         # Configure service
         await service.set_connection_method(method)
-        
     except ServiceNotFoundError:
         # Re-raise specific exceptions
         raise
@@ -345,7 +343,6 @@ from rssbot.discovery.cached_registry import CachedServiceRegistry
 
 class TestCachedServiceRegistry:
     """Test suite for CachedServiceRegistry."""
-    
     @pytest.fixture
     async def registry(self):
         """Create test registry instance."""
@@ -354,7 +351,6 @@ class TestCachedServiceRegistry:
         registry._redis = AsyncMock()
         registry._redis_available = True
         return registry
-    
     @pytest.mark.asyncio
     async def test_should_use_router_returns_true_for_router_services(self, registry):
         """Test that router services return True for router decision."""
@@ -363,14 +359,14 @@ class TestCachedServiceRegistry:
         registry._get_cached_connection_method = AsyncMock(
             return_value=ConnectionMethod.ROUTER
         )
-        
+
         # Act
         result = await registry.should_use_router(service_name)
-        
+
         # Assert
         assert result is True
         registry._get_cached_connection_method.assert_called_once_with(service_name)
-    
+
     @pytest.mark.asyncio
     async def test_cache_fallback_when_redis_unavailable(self, registry):
         """Test that system falls back to database when Redis is down."""
@@ -379,10 +375,10 @@ class TestCachedServiceRegistry:
         mock_service = Mock()
         mock_service.get_effective_connection_method.return_value = ConnectionMethod.REST
         registry.registry_manager.get_service_by_name = AsyncMock(return_value=mock_service)
-        
+
         # Act
         result = await registry.get_effective_connection_method("test_svc")
-        
+
         # Assert
         assert result == ConnectionMethod.REST
 ```

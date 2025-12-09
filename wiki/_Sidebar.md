@@ -1,56 +1,45 @@
+
 # 📚 RssBot Platform Wiki
 
 ## 🏠 Home
-- [**🚀 Main Wiki**](Home)
-- [**🇺🇸 English Docs**](en/Home)
-- [**🇮🇷 فارسی**](fa/Home)
+- [**🚀 Main Wiki**](Home.md)
+- [**🇺🇸 English Docs**](en/Home.md)
+- [**🇮🇷 فارسی**](fa/Home.md)
 
 ---
 
 ## 🏁 Getting Started
-- [📦 Installation](en/Installation)
-- [⚡ Quick Start](en/Quick-Start)
-- [⚙️ Configuration](en/Configuration)
-- [🤖 First Bot](en/First-Bot)
+- [📦 Installation](en/Installation.md)
+- [⚡ Quick Start](en/Quick-Start.md)
+- [🤖 First Bot](en/First-Bot.md)
 
 ## 🏗️ Architecture & Design
-- [🏛️ Architecture Overview](en/Architecture)
-- [🔍 Service Discovery](en/Service-Discovery)
-- [🔀 Connection Methods](en/Connection-Methods)
-- [📊 Performance](en/Performance)
+- [🏛️ Architecture Overview](en/Architecture.md)
+- [🔍 Service Discovery](en/Service-Discovery.md)
+- [🔀 Connection Methods](en/Connection-Methods.md)
 
 ## 👨‍💻 Development
-- [🛠️ Development Setup](en/Development)
-- [📚 API Reference](en/API)
-- [🧪 Testing Guide](en/Testing)
-- [🤝 Contributing](en/Contributing)
+- [📚 API Reference](en/API.md)
+- [🧪 Testing Guide](en/Testing.md)
 
 ## 🚀 Deployment & Ops
-- [🏭 Production](en/Production)
-- [🐳 Docker Guide](en/Docker)
-- [☸️ Kubernetes](en/Kubernetes)
-- [📈 Monitoring](en/Monitoring)
+- [📋 Deployment Checklist](en/Deployment-Checklist.md)
 
 ## 🔒 Security
-- [🛡️ Security Policy](en/Security)
-- [🔐 Authentication](en/Authentication)
-- [🔒 Environment Security](en/Environment-Security)
+- [🛡️ Security Policy](en/Security.md)
 
 ## 🛠️ Advanced
-- [🔧 Custom Services](en/Custom-Services)
-- [📋 Migration Guide](en/Migration)
-- [🚨 Troubleshooting](en/Troubleshooting)
-- [⚡ Performance Tuning](en/Performance-Tuning)
+- [🚨 Troubleshooting](en/Troubleshooting.md)
 
 ---
 
 ## 🇮🇷 مستندات فارسی
 
 ### شروع کار
-- [راهنمای شروع](fa/راهنمای-شروع)
-- [شروع سریع](fa/شروع-سریع)
-- [پیکربندی](fa/پیکربندی)
+- [راهنمای شروع](fa/راهنمای-شروع.md)
+- [شروع سریع](fa/شروع-سریع.md)
+- [پیکربندی](fa/پیکربندی.md)
 
 ### معماری
-- [معماری سیستم](fa/معماری-سیستم)
-- [راهنمای مهاجرت](fa/راهنمای-مهاجرت-معماری)
+- [معماری سیستم](fa/معماری-سیستم.md)
+- [راهنمای مهاجرت معماری](fa/راهنمای-مهاجرت-معماری.md)

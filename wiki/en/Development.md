@@ -108,23 +108,24 @@ async def process_services(
 ) -> Dict[str, Union[str, bool]]:
     """
     Process multiple services with specified connection method.
-    
+
+
     Args:
         service_names: List of service names to process
         connection_method: How services should connect
-        
+
     Returns:
         Dictionary with processing results for each service
-        
+
     Raises:
         ValueError: If service_names is empty
         ServiceError: If processing fails
     """
     if not service_names:
         raise ValueError("service_names cannot be empty")
-        
+
     results: Dict[str, Union[str, bool]] = {}
-    
+
     for service_name in service_names:
         try:
             success = await configure_service(service_name, connection_method)
@@ -132,7 +133,7 @@ async def process_services(
         except ServiceError as e:
             logger.error(f"Failed to process {service_name}: {e}")
             results[service_name] = False
-    
+
     return results
 
 # ❌ Incorrect: Missing type hints
@@ -149,19 +150,19 @@ def process_services(service_names, connection_method=None):
 class CachedServiceRegistry:
     """
     High-performance service registry with Redis caching.
-    
+
     This class provides service discovery, health monitoring, and connection
     method management using Redis for caching and database for persistence.
-    
+
     Attributes:
         redis_client: Redis client for caching operations
         db_session: Database session for persistent storage
-        
+
     Example:
         ```python
         registry = CachedServiceRegistry()
         await registry.initialize()
-        
+
         # Check if service should use router
         use_router = await registry.should_use_router("ai_svc")
         if use_router:
@@ -169,26 +170,27 @@ class CachedServiceRegistry:
             pass
         ```
     """
-    
+
     async def should_use_router(self, service_name: str) -> bool:
         """
         Determine if service should use router connection method.
-        
+
         This is the primary method for making per-service connection decisions.
         It checks cached configuration and service health to determine the
         optimal connection method.
-        
+
         Args:
             service_name: Name of the service (e.g., 'ai_svc', 'formatting_svc')
-            
+
         Returns:
             True if service should be mounted as FastAPI router (in-process),
             False if service should use REST HTTP calls
-            
+
         Raises:
             ValueError: If service_name is empty or invalid format
             CacheConnectionError: If Redis is down and database is unreachable
-            
+
+
         Example:
             ```python
             # Check AI service connection method
@@ -214,7 +216,6 @@ from rssbot.models.service_registry import ConnectionMethod
 
 class TestCachedServiceRegistry:
     """Comprehensive test suite for CachedServiceRegistry."""
-    
     @pytest.fixture
     async def mock_registry(self) -> CachedServiceRegistry:
         """Create mock registry for testing."""
@@ -222,7 +223,7 @@ class TestCachedServiceRegistry:
         registry._redis = AsyncMock()
         registry._redis_available = True
         return registry
-    
+
     @pytest.mark.asyncio
     async def test_should_use_router_validates_input(
         self, mock_registry: CachedServiceRegistry
@@ -231,11 +232,13 @@ class TestCachedServiceRegistry:
         # Test empty service name
         with pytest.raises(ValueError, match="service_name must be non-empty"):
             await mock_registry.should_use_router("")
-        
+
+
         # Test None input
         with pytest.raises(ValueError):
             await mock_registry.should_use_router(None)  # type: ignore
-    
+
+
     @pytest.mark.asyncio
     async def test_should_use_router_returns_correct_decision(
         self, mock_registry: CachedServiceRegistry
@@ -245,14 +248,15 @@ class TestCachedServiceRegistry:
         mock_registry._get_cached_connection_method = AsyncMock(
             return_value=ConnectionMethod.ROUTER
         )
-        
+
+
         # Act
         result = await mock_registry.should_use_router("ai_svc")
-        
+
         # Assert
         assert result is True
         mock_registry._get_cached_connection_method.assert_called_once_with("ai_svc")
-    
+
     @pytest.mark.asyncio
     async def test_cache_fallback_behavior(
         self, mock_registry: CachedServiceRegistry
@@ -265,10 +269,10 @@ class TestCachedServiceRegistry:
         mock_registry.registry_manager.get_service_by_name = AsyncMock(
             return_value=mock_service
         )
-        
+
         # Act
         result = await mock_registry.get_effective_connection_method("test_svc")
-        
+
         # Assert
         assert result == ConnectionMethod.REST
 ```
@@ -343,7 +347,7 @@ formatting_service = ServiceProxy("formatting_svc")
 async def health_check() -> Dict[str, str]:
     """
     Service health check endpoint.
-    
+
     Returns:
         Health status information
     """
@@ -360,20 +364,20 @@ async def process_data(
 ) -> ProcessResponse:
     """
     Process data using AI and formatting services.
-    
+
     Args:
         request: Processing request with data and options
         token: Service authentication token
-        
+
     Returns:
         Processing results with metadata
-        
+
     Raises:
         HTTPException: If processing fails
     """
     import time
     start_time = time.time()
-    
+
     try:
         # Use other services via ServiceProxy
         if request.options.get("use_ai", False):
@@ -381,7 +385,7 @@ async def process_data(
             processed_data = ai_result.get("result", request.data)
         else:
             processed_data = request.data
-        
+
         if request.options.get("format", False):
             formatted_result = await formatting_service.format(
                 content=processed_data,
@@ -390,9 +394,11 @@ async def process_data(
             final_result = formatted_result.get("formatted_content", processed_data)
         else:
             final_result = processed_data
-        
+
+
         processing_time = (time.time() - start_time) * 1000
-        
+
+
         return ProcessResponse(
             result=final_result,
             metadata={
@@ -528,7 +534,7 @@ class TestNewService:
     def client(self):
         """Create test client."""
         return TestClient(app)
-    
+
     @pytest.fixture
     def mock_ai_service(self):
         """Mock AI service dependency."""
