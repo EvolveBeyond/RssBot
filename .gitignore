@@ -121,3 +121,6 @@ profile_*
 test_results/
 test_reports/
 coverage_reports/
+
+# Other Repo
+wiki/
