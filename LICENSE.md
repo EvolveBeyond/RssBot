@@ -1,10 +1,10 @@
 # License
 
-Evox is fully open source and released under the MIT License. This license permits all forms of use, including commercial use and use in closed-source products, without any legal obligations.
+Evox is fully open source and released under the Apache License 2.0. This license permits all forms of use, including commercial use and use in closed-source products, without any legal obligations. It also provides an express grant of patent rights from contributors to users.
 
 ## Supporting Our Work
 
-The long-term development, maintenance, and security of the Evox project depend on community support. While the MIT License imposes no financial obligations, we kindly encourage organizations and individuals who derive significant commercial value from Evox to consider contributing to its sustainability.
+The long-term development, maintenance, and security of the Evox project depend on community support. While the Apache License 2.0 imposes no financial obligations, we kindly encourage organizations and individuals who derive significant commercial value from Evox to consider contributing to its sustainability.
 
 ### Voluntary Financial Contributions
 
