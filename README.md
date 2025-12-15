@@ -245,7 +245,18 @@ See [LICENSE](LICENSE) for the full license text and [LICENSE.md](LICENSE.md) fo
 ## Acknowledgments
 
 Evox is built on top of excellent open-source foundations. We're grateful to the creators and maintainers of:
+
+### Core Dependencies
 - FastAPI by Sebastián Ramírez (@tiangolo)
-- Typer, Pydantic, Uvicorn, and other dependencies
+- Typer by Sebastián Ramírez (@tiangolo)
+- Pydantic by Samuel Colvin and contributors
+- Uvicorn by Tom Christie and contributors
+- HTTPX by Encode OSS Ltd and contributors
+
+### Additional Dependencies
+- Jinja2 by Armin Ronacher and contributors
+- Tomli/TOML by Taneli Hukkinen and contributors
+- Aiosqlite by Amethyst Reese and contributors
+- Webbrowser (Python Standard Library)
 
 *Evox is in early alpha - not yet beta. Expect breaking changes. Ideas and implementation are experimental and evolving.*
