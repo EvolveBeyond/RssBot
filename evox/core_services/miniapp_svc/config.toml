@@ -1,0 +1,18 @@
+# MiniApp Service Configuration
+name = "miniapp_svc"
+version = "0.1.0"
+port = 8002
+
+# Connection method: router, rest, hybrid, disabled
+connection_method = "hybrid"
+
+[health]
+endpoint = "/health"
+
+[caching]
+default_ttl = 300
+enable_fallback = true
+max_stale_on_error = 60
+
+[storage]
+backend = "memory"

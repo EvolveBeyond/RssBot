@@ -1,0 +1,22 @@
+# User Service Configuration
+name = "user_svc"
+version = "0.1.0"
+port = 8003
+
+# Connection method: router, rest, hybrid, disabled
+connection_method = "hybrid"
+
+# Prerequisites - checked by 'evox sync sv'
+prerequisites = ["data_intent_svc"]
+
+[health]
+endpoint = "/health"
+
+[data_intents]
+# Default data intent behaviors
+default_ttl = 300
+enable_fallback = true
+max_stale_on_error = 60
+
+[storage]
+backend = "memory"  # memory, sqlite

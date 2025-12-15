@@ -1,0 +1,37 @@
+# Evox Project Configuration
+
+[project]
+name = "{{ project_name }}"
+version = "0.0.1-alpha"
+description = "Evox microservices project"
+
+# Priority Queue Configuration
+[queue]
+# Concurrency limits per priority level
+[queue.concurrency_limits]
+high = 10
+medium = 5
+low = 2
+
+# Queue length limits per priority level
+[queue.queue_limits]
+high = 50
+medium = 100
+low = 200
+
+# Caching Configuration
+[caching]
+default_ttl = 300  # 5 minutes
+enable_fallback = true
+max_stale_on_error = 3600  # 1 hour
+
+[caching.aggressive_fallback]
+enabled = false
+max_stale_duration = "24h"
+
+# Storage Configuration
+[storage]
+backend = "memory"  # memory, sqlite
+
+[storage.sqlite]
+path = "data.db"

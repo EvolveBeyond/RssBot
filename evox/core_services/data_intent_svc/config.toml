@@ -1,0 +1,21 @@
+# Data Intent Service Configuration
+name = "data_intent_svc"
+version = "0.1.0"
+port = 8001
+
+# Connection method: router, rest, hybrid, disabled
+connection_method = "hybrid"
+
+[health]
+endpoint = "/health"
+
+[data_intents]
+# Default data intent behaviors
+default_ttl = 300
+enable_fallback = true
+max_stale_on_error = 60
+
+[storage]
+backend = "memory"  # memory, sqlite
+ttl_default = 300
+sqlite_url = "sqlite:///data_intent.db"
