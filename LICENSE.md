@@ -25,10 +25,23 @@ This is a voluntary, non-binding request, not a licensing condition. We are grat
 
 Since Evox is built on top of excellent open-source foundations, you can also support:
 
-#### FastAPI Project
+#### Core Dependencies
 
-Evox heavily relies on FastAPI as its core. Consider supporting:
+Evox heavily relies on these essential projects:
 
-- **Sebastián Ramírez (Tiangolo)** - Creator of FastAPI
-- GitHub: [@tiangolo](https://github.com/tiangolo)
-- GitHub Sponsors: [tiangolo](https://github.com/sponsors/tiangolo)
+- **FastAPI** - High performance, easy to learn, fast to code, ready for production API framework
+- **Typer** - Library for building CLI applications
+- **Pydantic** - Data validation and settings management using Python type annotations
+- **Uvicorn** - Lightning-fast ASGI server implementation
+- **HTTPX** - Fully featured HTTP client for Python 3
+
+#### Additional Dependencies
+
+Other important projects that make Evox possible:
+
+- **Jinja2** - Modern and designer-friendly templating language for Python
+- **Tomli/TOML** - Library for parsing TOML configuration files
+- **Aiosqlite** - Asynchronous interface to SQLite
+- **Webbrowser** - Standard library module for web browser integration
+
+Supporting these projects helps ensure the entire ecosystem remains healthy and continues to evolve.
