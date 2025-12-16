@@ -1,16 +1,9 @@
-<<<<<<< HEAD
-# Evox - Modern Python Microservices Framework (Data-Intent-Aware)
-=======
 # Evox - Modern Python Microservices Framework (v0.0.2-alpha - Optimized & Rye-Native)
->>>>>>> 8b4dd62 (Everything is being finalized and moving towards a stable version.)
 
 Evox is a modern microservices framework for Python, designed exclusively for Rye package management. Evox leverages FastAPI's built-in capabilities for optimal performance and developer experience.
 
 This is not an application or bot framework — it is a pure framework aimed at changing how we think about building scalable Python backends in the modern era.
 
-<<<<<<< HEAD
-## Key Features (Data-Intent-Aware Evolution)
-=======
 > **⚠️ Rye Exclusive**: Evox is designed exclusively for Rye — use `rye sync`, `rye run`, `rye add` for all operations. No support for pip requirements.txt or other tools.
 
 > **⚠️ Alpha Status**: Evox is in very early alpha (v0.0.2-alpha) - not yet beta. Expect breaking changes. Features are experimental and evolving.
