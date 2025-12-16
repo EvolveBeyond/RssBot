@@ -1,10 +1,10 @@
-# Evox - Modern Python Microservices Framework (V3.0 - Data-Intent-Aware)
+# Evox - Modern Python Microservices Framework (Data-Intent-Aware)
 
 Evox is a modern, lightweight, plugin-first microservices framework built on FastAPI. It provides a simpler, more intuitive way to build distributed systems while retaining the full power of FastAPI through escape hatches.
 
 > **⚠️ Alpha Status**: Evox is in early alpha (v0.0.1-alpha) - not yet beta. Expect breaking changes. Ideas and implementation are experimental and evolving.
 
-## Key Features (V3.0 - Data-Intent-Aware Evolution)
+## Key Features (Data-Intent-Aware Evolution)
 
 ### 🎯 Data-Intent-Aware Architecture
 - **Shift from "Storage-aware" to Data-Intent-aware**: System infers storage/cache/consistency behavior from explicit data intents
